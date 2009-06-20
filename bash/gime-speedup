@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo "gime-speedup - GameImage™ Copy to RAM script"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
@@ -5,66 +7,68 @@ echo "WARNING: This is experimental feature that may cause data loss or worse, y
 echo "WARNING #2: You need alot virtual memory (ram + swap) for this (image size + game RAM requirement)"
 
 if [ "$1" = "" ]; then
-echo "usage: $0 to-ram/from-ram imagename tmpfssize [filesystem]"
-echo "to-ram/from-ram:"
-echo "to-ram - makes a tmpfs and copies the image to it"
-echo "from-ram - moves the image from tmpfs to disk and removes tmpfs destroying all data"
-echo " "
-echo "imagename - image name (without .gime, must be decompressed first)"
-echo "tmpfssize - the size of tmpfs that will be created in memory"
-exit 0
+    echo "usage: $0 to-ram/from-ram imagename tmpfssize [filesystem]"
+    echo "to-ram/from-ram:"
+    echo "to-ram - makes a tmpfs and copies the image to it"
+    echo "from-ram - moves the image from tmpfs to disk and removes tmpfs destroying all data"
+    echo " "
+    echo "imagename - image name (without .gime, must be decompressed first)"
+    echo "tmpfssize - the size of tmpfs that will be created in memory"
+    exit 0
 fi
 
 if [ -e "$1" ]; then
-if [ "$1" = "to-ram" ]; then
-mkdir "$2-tmpfs"
-sudo mount -t tmpfs -o size=$3,nr_inodes=10k,mode=0777 tmpfs $2-tmpfs
-if [ "$?" = "0" ]; then
-echo "-> TMPFS created"
-else
-echo "-> ERROR"; exit $?
+    if [ "$1" = "to-ram" ]; then
+        mkdir "$2-tmpfs"
+        sudo mount -t tmpfs -o size=$3,nr_inodes=10k,mode=0777 tmpfs $2-tmpfs
+        if [ "$?" = "0" ]; then
+            echo "-> TMPFS created"
+        else
+            echo "-> ERROR"; exit $?
+        fi
+        cp $1 $1-tmpfs
+        if [ "$?" = "0" ]; then
+            echo "-> $2 copied into TMPFS"
+        else
+            echo "-> ERROR"; exit $?
+        fi
+        if [ -d "$2-mnt" ]; then
+            echo "-> $2-mnt exists, using it as mount target"
+            sudo umount $2-mnt
+            if [ "$4" != "" ]; then
+                sudo mount -t $4 $2-tmpfs/$2 $2-mnt
+            else
+                sudo mount -t ext4 $2-tmpfs/$2 $2-mnt
+            fi
+            if [ "$?" = "0" ]; then
+                echo "$2 mounted successfully from ram under $2-mnt, remember to exec $0 from-ram $2 after playing! Any reset or shutdown without executing it will cause data loss."
+            else
+                echo "-> ERROR"; exit $?
+            fi
+        else
+            mkdir $1-mnt
+            if [ "$4" != "" ]; then
+                sudo mount -t $4 $2-tmpfs/$2 $2-mnt
+            else
+                sudo mount -t ext4 $2-tmpfs/$2 $2-mnt
+            fi
+            if [ "$?" = "0" ]; then
+                echo "$2 mounted successfully from ram under $2-mnt, remember to exec $0 from-ram $2 after playing! Any reset or shutdown without executing it will cause data loss."
+            else
+                echo "-> ERROR"; exit $?
+            fi
+        fi
+    elif [ "$1" = "from-ram" ]; then
+        echo "-> Moving $2 to disk."
+        mv -f $2-tmpfs/$2 $2
+        if [ "$?" = "0" ]; then
+            echo "-> Moved successfully."
+        else
+            echo "-> ERROR"; exit $?
+        fi
+        sudo umount $2-tmpfs
+        rm -rf $2-tmpfs
+        echo "-> Done"
+    fi
 fi
-cp $1 $1-tmpfs
-if [ "$?" = "0" ]; then
-echo "-> $2 copied into TMPFS"
-else
-echo "-> ERROR"; exit $?
-fi
-if [ -d "$2-mnt" ]; then
-echo "-> $2-mnt exists, using it as mount target"
-sudo umount $2-mnt
-if [ "$4" != "" ]; then
-sudo mount -t $4 $2-tmpfs/$2 $2-mnt
-else
-sudo mount -t ext4 $2-tmpfs/$2 $2-mnt
-fi
-if [ "$?" = "0" ]; then
-echo "$2 mounted successfully from ram under $2-mnt, remember to exec $0 from-ram $2 after playing! Any reset or shutdown without executing it will cause data loss."
-else
-echo "-> ERROR"; exit $?
-fi
-else
-mkdir $1-mnt
-if [ "$4" != "" ]; then
-sudo mount -t $4 $2-tmpfs/$2 $2-mnt
-else
-sudo mount -t ext4 $2-tmpfs/$2 $2-mnt
-fi
-if [ "$?" = "0" ]; then
-echo "$2 mounted successfully from ram under $2-mnt, remember to exec $0 from-ram $2 after playing! Any reset or shutdown without executing it will cause data loss."
-else
-echo "-> ERROR"; exit $?
-fi
-fi
-else; if [ "$1" = "from-ram" ]; then
-echo "-> Moving $2 to disk."
-mv -f $2-tmpfs/$2 $2
-if [ "$?" = "0" ]; then
-echo "-> Moved successfully."
-else
-echo "-> ERROR"; exit $?
-fi
-sudo umount $2-tmpfs
-rm -rf $2-tmpfs
-echo "-> Done"
-fi
+
