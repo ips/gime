@@ -1,21 +1,21 @@
 #!/bin/bash
 echo "GIME-LZMA - GameImage™ LZMA Compress Script"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
+
 if [ "$1" = "" ]; then
-echo "usage: $0 imagename (without .gime)"; exit 0
-fi
-if [ -e "$1" ]; then
-echo "-> Compressing $1..."
-lzma -S .gime $1 > /dev/null
-if [ "$?" = "0" ]; then
-echo "-> Done"
-fi
+    echo "usage: $0 imagename (without .gime)"; exit 0
+elif [ -e "$1" ]; then
+    echo "-> Compressing $1..."
+    lzma -S .gime $1 > /dev/null
+    if [ "$?" = "0" ]; then
+        echo "-> Done"
+    fi
 else
-if [ -e "$1.gime" ]; then
-echo  "Decopressing $1..."
-lzma -d -S .gime $1.gime
-if [ "$?" = "0" ]; then
-echo "-> Done";
-fi
-fi
+    if [ -e "$1.gime" ]; then
+        echo  "Decopressing $1..."
+        lzma -d -S .gime $1.gime
+        if [ "$?" = "0" ]; then
+            echo "-> Done";
+        fi
+    fi
 fi

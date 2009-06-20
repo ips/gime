@@ -1,22 +1,22 @@
+#!/bin/bash
+
 echo "gime-patch - GameImage™ Config Patcher"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
 
 if [ "$1" = "" ]; then
-echo "usage: $0 patchfile imagename"
-echo "patchfile - patch file (without .giconf suffix)"
-echo "imagename - image name (like this used in gime-mount, without .gime, must be mounted!)"
-exit 0
-fi
-
-if [ -e "$1" ]; then
-if [ -e "$2-mnt" ] && [ -d "$2-mnt" ]; then
-tar jxf $1.giconf -C $1
-cp -R $1/files/* $2-mnt/wine-env/drive_c
-echo "-> Files patched
-if [ -e "$1/patch.reg" ]; then
-cat $1/patch.reg >> $2-mnt/wine-env/user.reg
-echo "-> Registry patched"
-fi
-fi
+    echo "usage: $0 patchfile imagename"
+    echo "patchfile - patch file (without .giconf suffix)"
+    echo "imagename - image name (like this used in gime-mount, without .gime, must be mounted!)"
+    exit 0
+elif [ -e "$1" ]; then
+    if [ -e "$2-mnt" ] && [ -d "$2-mnt" ]; then
+        tar jxf $1.giconf -C $1
+        cp -R $1/files/* $2-mnt/wine-env/drive_c
+        echo "-> Files patched"
+        if [ -e "$1/patch.reg" ]; then
+            cat $1/patch.reg >> $2-mnt/wine-env/user.reg
+            echo "-> Registry patched"
+        fi
+    fi
 fi
