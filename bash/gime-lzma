@@ -12,7 +12,7 @@ elif [ -e "$1" ]; then
     fi
 else
     if [ -e "$1.gime" ]; then
-        echo  "Decopressing $1..."
+        echo  "Decompressing $1..."
         lzma -d -S .gime $1.gime
         if [ "$?" = "0" ]; then
             echo "-> Done";
