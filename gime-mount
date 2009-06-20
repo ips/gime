@@ -1,0 +1,49 @@
+#!/bin/bash
+echo "gime-mount - GameImage™ Mount Tool"
+echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
+
+if [ "$1" = "" ]; then
+echo "usage: $0 imagename [filesystem]"
+echo "imagename - name of image (without .gime suffix)"
+echo "filesystem - optional, if image have an custom filesystem"
+fi
+
+if [ -e "$1.gime" ]; then
+echo "-> Found compressed image, decompressing..."
+lzma -d -S .gime $1.gime
+if [ "$?" = "0" ]; then
+echo "-> Decompression OK"
+else
+echo "-> Decompression FAILED"; exit lzma_error_$?
+fi
+fi
+
+if [ -e "$1" ]; then
+echo "-> $1 found, OK"
+if [ -e "$1-mnt" ] && [ -d "$1-mnt" ]; then
+echo "-> $1-mnt found and is an directory"
+if [ "$2" != "" ]; then
+sudo mount -o loop -t $2 $1 $1-mnt
+sudo chown -R $USER $1-mnt
+else
+sudo mount -o loop -t ext4 $1 $1-mnt
+sudo chown -R $USER $1-mnt
+fi
+else
+echo "-> Making directory $1-mnt"
+mkdir "$1-mnt"
+if [ "$?" = "0" ]; then
+if [ "$2" != "" ]; then
+sudo mount -o loop -t $2 $1 $1-mnt
+sudo chown -R $USER $1-mnt
+else
+sudo mount -o loop -t ext4 $1 $1-mnt
+sudo chown -R $USER $1-mnt
+fi
+else
+echo "-> Making directory FAILED"; exit make_dir_fail
+fi
+fi
+else
+echo "-> $1 not found"
+fi

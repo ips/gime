@@ -1,0 +1,100 @@
+#!/bin/sh
+echo "mkGIME - GameImage™ Creation Tool v0.1"
+echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
+
+usage() {
+echo "Usage:"
+echo "$0 filename size xX installer [filesystem]"
+echo "filename - GameImage™ file name (without .gime suffix)"
+echo "size - Size of a GameImage™, accepted 1G 2G 4G 8G and 16G"
+echo "xX - Number of repeats of the size (ex. size = 512 mb, repeated 2, target size 1 gb)"
+echo "installer - full or releative path to the installer"
+echo "filesystem - the filesystem to use \(must be created with mkfs.filesystem!\), if not specified forcing ext4"
+}
+
+if [ "$1" = "--help" ]; then
+usage; exit 0
+fi;
+if [ "$1" = "" ]; then
+usage; exit 0
+fi;
+if [ -x "$1" ]; then
+echo "File $1 exists!"; exit 1
+fi;
+
+
+if [ -e "$4" ]; then
+LOL="1"
+else
+exit 3
+fi
+
+summary() {
+echo "--------------------------------------"
+echo "File uncompressed: $IMGNAME"
+echo "File compressed: $IMGNAME.gime"
+echo "Installer: $INSTALLER"
+echo "Size of uncompressed GameImage™: $SIZE1x$SIZE2"
+if [ "$FS" != "" ]; then
+echo "Filesystem: $FS"
+else
+echo "Filesystem: ext4"
+fi
+echo "--------------------------------------"
+echo "-> Proceeding"
+}
+
+export IMGNAME="$1" INSTALLER="$4" SIZE1="$2" SIZE2="$3" FS="$5"
+
+summary
+
+
+echo "-> Creating $1 with size $2Bx$3..."
+dd if=/dev/zero of=$1 bs=$2 count=$3
+if [ "$?" != "0" ]; then
+echo "Error!"; exit $?
+fi
+
+if [ "$5" != "" ]; then
+echo "-> Making an new filesystem on $1 - $5..."
+if [ -x "/sbin/mkfs.$5" ]; then
+echo "--> /sbin/mkfs.$5 exists, using it..."
+/sbin/mkfs.$5 $1
+if [ "$?" = "0" ]; then
+echo "--> FS created"
+else
+echo "--> FS creation failed! Look at output above"
+fi
+else
+echo "--> Can't locate /sbin/mkfs.$5!"; exit unkown_fs
+fi
+else
+echo "-> Making an new filesystem on $1 - ext4..."
+if [ -x "/sbin/mkfs.ext4" ]; then
+echo "--> /sbin/mkfs.ext4 exists, using it..."
+/sbin/mkfs.ext4 -F $1 > mkfs.ext4.out
+if [ "$?" = "0" ]; then
+echo "--> FS created"
+else
+echo "--> FS creation failed! Look at mkfs.ext4.out"
+fi
+else
+echo "--> Can't locate /sbin/mkfs.ext4! Do you have an ext4utils package?"; exit ext4_maker_not_found
+fi
+fi
+
+if [ -x "/usr/bin/sudo" ]; then
+echo "-> Found sudo in /usr/bin/sudo, using it to mount"
+mkdir $1-mnt
+sudo mount -o rw,user,loop -t $5 $1 $1-mnt
+echo "-> CHMODing all to 777 and CHOWNing"
+sudo chmod -R 777 $1-mnt
+sudo chown -R $USER $1-mnt
+echo "-> Making new wine environment on $1... The winecfg window will appear, please configure all."
+env WINEPREFIX="$PWD/$1-mnt/wine-env" winecfg
+echo "-> Installing game in image..."
+env WINEPREFIX="$PWD/$1-mnt/wine-env" wine $4
+echo "-> Copying base..."
+cp gime-basic-env/__run__.sh $PWD/$1-mnt/
+cat gime-basic-env/README
+fi

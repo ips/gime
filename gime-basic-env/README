@@ -1,0 +1,9 @@
+Now change the initial __run__.sh script to run your game. You have time
+to configure your game and apply patches. After that unmount this dir.
+ The mounted image directory is imagename-mnt.
+  To unmount type sudo unmount imagename-mnt, if you want to prepare the
+  image for distribution or just make it smaller, type: ./gime-lzma imagename
+   Mounting again is simple. Type ./gimemount imagename - if you used
+   gime-lzma tool before, or you downloaded image from internet it will
+   be decompressed first. This can take an long time, but is 2x faster
+   than compression ( ./gime-lzma ).
