@@ -48,8 +48,13 @@ def debian_check():
     else:
         print "The Wine version in your repository is ok.\n"
 
-if len(name) == 0:
+if len(name) == 0 or name == "--help":
     help()
+elif os.path.exists(name):
+    print "File exists!\n"
 
 if os.path.exists('/usr/bin/aptitude'):
     debian_check()
+
+
+
