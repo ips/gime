@@ -1,0 +1,32 @@
+#!/bin/bash
+# -*- coding: utf-8 -*-
+#
+#   Copyright 2009 ExeGames.PL & Serenity.org.pl
+#   license = GPLv3
+#   version =
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+echo "gime-check-repo - GameImage™ Repository Checker"
+echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
+
+CHECK=`apt-cache show wine | sed -n -e '/Version/p' -e '/1.0.1/p'`
+
+if [ "$CHECK" = "" ]; then
+    echo "The Wine version in your repository is ok."
+    exit 0
+else
+    echo "The Wine version in your repository is too old. Please update. Make sure the unstable Wine \
+repository is on top in sources.list"
+fi
