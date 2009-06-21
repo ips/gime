@@ -20,7 +20,7 @@
 
 import sys
 import os
-from subprocess import Popen
+import subprocess 
 
 if (len(sys.argv) > 1):
     name = sys.argv[1]
@@ -30,12 +30,26 @@ else:
 def help():
     print """Usage:
 mkgime filename size xX installer [filesystem]\n
-\tfilename - GameImage™ file name (without .gime suffix)
-\tsize - Size of a GameImage™, accepted 1G 2G 4G 8G and 16G
-\txX - Number of repeats of the size (ex. size = 512 mb, repeated 2, target size 1 gb)
-\tinstaller - full or releative path to the installer
-\tfilesystem - the filesystem to use \(must be created with mkfs.filesystem!\), if not specified forcing ext4\n"""
+\tfilename      - GameImage™ file name (without .gime suffix)
+\tsize          - Size of a GameImage™, accepted 1G 2G 4G 8G and 16G
+\txX            - Number of repeats of the size (ex. size = 512 mb, repeated 2, target size 1 gb)
+\tinstaller     - full or releative path to the installer
+\tfilesystem    - the filesystem to use (must be created with mkfs.filesystem!), if not specified forcing ext4\n"""
 
-def summary():
-    
-help()
+def debian_check():
+
+    command = "wine --version"
+    opt = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    optdata = opt.communicate() [0]
+
+    if optdata.find('1.0.1') > 0:
+        print "The Wine version in your repository is too old. Please update. Make sure the unstable Wine repository is on top in sources.list\n"
+
+    else:
+        print "The Wine version in your repository is ok.\n"
+
+if len(name) == 0:
+    help()
+
+if os.path.exists('/usr/bin/aptitude'):
+    debian_check()
