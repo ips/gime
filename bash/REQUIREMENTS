@@ -1,0 +1,17 @@
+GameImage™ Requirements
+
+
+sudo - for executing commands as root, available in repositories on all modern distributions
+ext4utils - for using mkfs.ext4
+{filesystem}utils - if you want to use fs other than ext4
+lzma - for compression, available in repositories on all modern distributions
+wine 1.0.1< - version must be greater than 1.0.1
+bash - for executing this ;)
+python - look ^^ up!
+you need shell that supports shebang (#!something) (in this time, practically all distibutions)
+git-core - if you want checkouts of the latest developement versions
+
+and...
+
+
+ROOT ACCESS TO THIS MACHINE!

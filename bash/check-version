@@ -1,0 +1,10 @@
+#!/bin/bash
+
+WINEVER=`wine --version | grep 1.0.1`
+
+
+if [ "$WINEVER" != "" ]; then
+	echo "Your wine version is too old. Please update."
+else
+	echo "Your wine version pass the requirements."
+fi
