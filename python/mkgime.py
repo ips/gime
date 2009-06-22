@@ -54,9 +54,10 @@ def version_check():
         print >>sys.stderr, "Please install wine"
         exit(code=1)
 
-    opt = subprocess.Popen(command, shell=True, stderr=None, stdout=subprocess.PIPE).communicate()[0]
+    opt = subprocess.Popen(command, shell=True, stderr=None, stdout=subprocess.PIPE)
+    opt_stdout = opt.communicate()[0]
 
-    if opt.find('1.0.1') > 0:
+    if opt_stdout.find('1.0.1') > 0:
         if os.path.exists('/usr/bin/aptitude'):
             print >>sys.stderr, "Wine version in Your system is too old. Please update. Make sure the unstable Wine repository is on top in sources.list"
         else: 
@@ -117,12 +118,17 @@ else:
 if os.path.exists('/usr/bin/sudo'):
     print "-> found sudo in /usr/bin/sudo, using it to mount"
     mntname = "%s-mnt" % name
-    if os.path.exists(mntname) == "false":
-       os.mkdir(mntname)
+    home = os.getenv('PWD')
+    to_mount = "%s/%s" % (home, mntname)
+    if os.path.exists(to_mount):
+        print "Directory %s exists: OK" % to_mount
+    else:
+        os.mkdir(to_mount)
     mnt_cmd = "sudo mount -o rw,user,loop -t %s %s %s" % (fs, name, mntname)
-    mnt = subprocess.call(mnt_cmd, shell=True)
-    if mnt < 0:
-        print >>sys.stderr, "--> Mounting failed!", -mnt
+    mnt = subprocess.Popen(mnt_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    mnt_stdout = mnt.communicate()[0]
+    if mnt_stdout:
+        print >>sys.stderr, "--> Mounting failed!", -mnt_stdout 
         exit(code=1)
     print "-> CHOWNing"
     user = os.geteuid()
@@ -135,7 +141,7 @@ if os.path.exists('/usr/bin/sudo'):
     subprocess.Popen('winecfg', shell=True).communicate()[0]
     print "-> Installing game in image..."
     subprocess.Popen(['wine', installer], shell=True).communicate()[0]
-    cp_cmd = "cp gime-basic-env/__run__.sh %s/%s" % (home, mntname)
+    cp_cmd = "cp %s/gime-basic-env/__run__.sh %s/%s" % (home, home, mntname)
     subprocess.Popen(cp_cmd, shell=True).communicate()[0]
 
     print """Now change the initial __run__.sh script to run your game. You have time 
