@@ -30,7 +30,7 @@ if len(sys.argv) > 1:
     installer = sys.argv[4]
     size1 = sys.argv[2]
     size2 = sys.argv[3]
-    if len(sys.argv)  == 5:
+    if len(sys.argv)  == 6:
         fs = sys.argv[5]
     else:
         fs = "ext4"
@@ -51,7 +51,7 @@ def version_check():
     if os.path.exists('/usr/bin/wine'):
         command = "wine --version"
     else:
-        print >>sys.stderr, "Please instll wine"
+        print >>sys.stderr, "Please install wine"
         exit(code=1)
 
     opt = subprocess.Popen(command, shell=True, stderr=None, stdout=subprocess.PIPE).communicate()[0]
@@ -79,50 +79,64 @@ if len(name) == 0 or name == "--help":
     help()
 elif os.path.exists(name):
     print >>sys.stderr, "File exists!"
-    exit(code/0)
+    exit(code=1)
 
 version_check()
-
 
 summary(name, installer, size1, size2, fs)
 
 print "-> Creating %s with size %sx%s" % (name, size1, size2)
-dd_command = 'dd if=/dev/zero of=', name, ' bs=', size1, ' count=', size2
+dd_command = "dd if=/dev/zero of=%s bs=%s count=%s" % (name, size1, size2)
 dd = subprocess.call(dd_command, shell=True)
-
 if dd < 0:
     print >>sys.stderr, "Error!", -dd
     exit(code=1)
 
 print "-> Making new filesystem on %s - %s..." % (name, fs)
 
-if os.path.exists(['/sbin/mkfs.', fs]) == "True":
+mkfs_path = "/sbin/mkfs.%s" % fs
+if os.path.exists(mkfs_path):
     print "--> /sbin/mkfs.%s exists, using it..." % fs
-    mkfs = subprocess.Popen(['/sbin/mkfs.', fs, ' -F ', name, ' > mkfs.', fs, '.out'], shell=True, stdout=subprocess.PIPE).communicate()[0]
-    if retcode < 0:
-        print >>sys.stderr, "--> Filesystem creation failed!", -retcode
+    if fs.find('ext') > 0:
+        ext = '-F '
+    else:
+        ext = ''
+    mkfs_command = "%s %s%s" % (mkfs_path, ext, name)
+    print mkfs_command
+
+    mkfs = subprocess.call(mkfs_command, shell=True)
+    if mkfs < 0:
+        print >>sys.stderr, "--> Filesystem creation failed!", -mkfs
         exit(code=1)
     else:
-        print "--> FS created"
+        print "--> fs created"
 else:
-    print >>sys.stderr, "--> Can't locate /sbin/mkfs.%s! You have to install package that contains tools for filesystem that You've chosen" % fs
+    print >>sys.stderr, "--> can't locate /sbin/mkfs.%s! you have to install package that contains tools for filesystem that you've chosen" % fs
     exit(code=1)
 
 if os.path.exists('/usr/bin/sudo'):
-    print "-> Found sudo in /usr/bin/sudo, using it to mount"
-    mntname = name,'-mnt'
-    os.mkdir(mntname)
-    subprocess.Popen(['sudo mount -o rw,user,loop -t ', fs, ' ', name, ' ', mntname], shell=True).communicate()[0]
+    print "-> found sudo in /usr/bin/sudo, using it to mount"
+    mntname = "%s-mnt" % name
+    if os.path.exists(mntname) == "false":
+       os.mkdir(mntname)
+    mnt_cmd = "sudo mount -o rw,user,loop -t %s %s %s" % (fs, name, mntname)
+    mnt = subprocess.call(mnt_cmd, shell=True)
+    if mnt < 0:
+        print >>sys.stderr, "--> Mounting failed!", -mnt
+        exit(code=1)
     print "-> CHOWNing"
-    user = os.getuid()
-    os.chown(mntname, user)
+    user = os.geteuid()
+    gid = os.getgid()
+    os.chown(mntname, user, gid)
     print "-> Making new wine environment on %s... The winecfg window will appear, please configure all." % name
-    home = os.getenv('$PWD')
-    os.putenv('WINEPREFIX', [home, mntname, '/wine-env'])
+    home = os.getenv('PWD')
+    wprefix = "%s/%s/wine-env" % (home, mntname)
+    os.putenv('WINEPREFIX', wprefix)
     subprocess.Popen('winecfg', shell=True).communicate()[0]
     print "-> Installing game in image..."
     subprocess.Popen(['wine', installer], shell=True).communicate()[0]
-    subprocess.Popen(['cp gime-basic-env/__run__.sh ', home, mntdir], shell=True).communicate()[0]
+    cp_cmd = "cp gime-basic-env/__run__.sh %s/%s" % (home, mntname)
+    subprocess.Popen(cp_cmd, shell=True).communicate()[0]
 
     print """Now change the initial __run__.sh script to run your game. You have time 
 to configure your game and apply patches. After that unmount this dir.
