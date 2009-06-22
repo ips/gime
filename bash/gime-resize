@@ -36,4 +36,8 @@ echo "WARNING: This is just STUB!"
 
 if [ -e "$1" ]; then
 	echo "-> $1 found"
-	sudo mount 
+	if [ "$4" = "" ]; then
+		echo "-> Mounting $1 as ext4"
+		if [ -x "$1-mnt" ]; then
+			rm -rf $1-mnt; mkdir $1-mnt
+			sudo mount $1 -t ext4 -o loop $1 $1-mnt 

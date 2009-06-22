@@ -18,5 +18,7 @@ elif [ -e "$1" ]; then
             cat $1/patch.reg >> $2-mnt/wine-env/user.reg
             echo "-> Registry patched"
         fi
+    else
+        echo "$2 isn't mounted!"; exit 2
     fi
 fi
