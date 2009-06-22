@@ -88,4 +88,6 @@ if [ -x "/usr/bin/sudo" ]; then
     echo "-> Copying base..."
     cp gime-basic-env/__run__.sh $PWD/$1-mnt/
     cat gime-basic-env/README
+else
+    echo "-> sudo is required to mount. Please install it."
 fi
