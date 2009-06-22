@@ -6,8 +6,8 @@ echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 usage() {
     echo "Usage:"
     echo "$0 filename size xX installer [filesystem]"
-    echo "filename - GameImage™ file name (without .gime suffix)"
-    echo "size - Size of a GameImage™, accepted 1G 2G 4G 8G and 16G"
+    echo "filename - GameImage file name (without .gime suffix)"
+    echo "size - Size of a GameImage, accepted 1G 2G 4G 8G and 16G"
     echo "xX - Number of repeats of the size (ex. size = 512 mb, repeated 2, target size 1 gb)"
     echo "installer - full or releative path to the installer"
     echo "filesystem - the filesystem to use \(must be created with mkfs.filesystem!\), if not specified forcing ext4"
@@ -26,7 +26,7 @@ summary() {
     echo "File uncompressed: $IMGNAME"
     echo "File compressed: $IMGNAME.gime"
     echo "Installer: $INSTALLER"
-    echo "Size of uncompressed GameImage™: $SIZE1x$SIZE2"
+    echo "Size of uncompressed GameImage: $SIZE1x$SIZE2"
     
     if [ "$FS" != "" ]; then
         echo "Filesystem: $FS"
