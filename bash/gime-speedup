@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "gime-speedup - GameImage™ Copy to RAM script"
+echo "gime-speedup - GameImage Copy to RAM script"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
 echo "WARNING: This is experimental feature that may cause data loss or worse, your save from the half of game!"

@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-echo "gime-resize - GameImage™ Size Changing Tool"
+echo "gime-resize - GameImage Size Changing Tool"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
 if [ "$1" = "" ]; then

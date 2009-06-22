@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "gime-mount - GameImage™ Mount Tool"
+echo "gime-mount - GameImage Mount Tool"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
 if [ "$1" = "" ]; then

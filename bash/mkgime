@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "mkGIME - GameImage™ Creation Tool v0.1"
+echo "mkGIME - GameImage Creation Tool v0.1"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
 usage() {
