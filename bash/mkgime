@@ -15,10 +15,8 @@ usage() {
 
 if [ "$1" = "--help" ] || [ "$1" = "" ]; then
     usage; exit 0
-elif [ -x "$1" ]; then
+elif [ -e "$1" ]; then
     echo "File $1 exists!"; exit 1
-elif [ -e "$4" ]; then
-    LOL="1"
 else
     exit 3
 fi
