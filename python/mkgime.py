@@ -8,7 +8,7 @@
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
+#   (at  option) any later version.
 #
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,11 +22,13 @@ import sys
 import os
 import subprocess 
 
+
 if len(sys.argv) > 1:
-    if len(sys.argv) >= 1:
-        name = sys.argv[1]
-    else:
-        name = ''
+    name = sys.argv[1]
+else:
+    name = ''
+
+if len(sys.argv) >= 5:
     installer = sys.argv[4]
     size1 = sys.argv[2]
     size2 = sys.argv[3]
@@ -34,10 +36,14 @@ if len(sys.argv) > 1:
         fs = sys.argv[5]
     else:
         fs = "ext4"
-else:
-    help()
 
-def help():
+if len(name) > 0 and len(sys.argv) >= 5:
+    mntname = "%s-mnt" % name
+    currentdir = os.getenv('PWD')
+    to_mount = "%s/%s" % (currentdir, mntname)
+    imgpath = "%s/%s" % (currentdir, name)
+
+def helpmsg():
     print """Usage:
 mkgime filename size xX installer [filesystem]\n
 \tfilename      - GameImage file name (without .gime suffix)
@@ -45,14 +51,18 @@ mkgime filename size xX installer [filesystem]\n
 \txX            - Number of repeats of the size (ex. size = 512 mb, repeated 2, target size 1 gb)
 \tinstaller     - full or releative path to the installer
 \tfilesystem    - the filesystem to use (must be created with mkfs.filesystem!), if not specified forcing ext4"""
-    exit(code=1)
+    
+def failed():
+    if os.path.exists(imgpath):
+        os.remove(imgpath)
+    sys.exit(1)
 
 def version_check():
     if os.path.exists('/usr/bin/wine'):
         command = "wine --version"
     else:
         print >>sys.stderr, "Please install wine"
-        exit(code=1)
+        failed()
 
     opt = subprocess.Popen(command, shell=True, stderr=None, stdout=subprocess.PIPE)
     opt_stdout = opt.communicate()[0]
@@ -62,7 +72,7 @@ def version_check():
             print >>sys.stderr, "Wine version in Your system is too old. Please update. Make sure the unstable Wine repository is on top in sources.list"
         else: 
             print >>sys.stderr, "Wine version in Your system is too old. Please update."
-        exit(code=1)
+        failed()
     else:
         print "Wine version in Your system is ok."
 
@@ -77,10 +87,11 @@ Filesystem: %s
 -> Proceeding""" % (n, n, i, s1, s2, fs)
 
 if len(name) == 0 or name == "--help":
-    help()
+    helpmsg()
+    sys.exit(0)
 elif os.path.exists(name):
     print >>sys.stderr, "File exists!"
-    exit(code=1)
+    sys.exit(1)
 
 version_check()
 
@@ -91,7 +102,7 @@ dd_command = "dd if=/dev/zero of=%s bs=%s count=%s" % (name, size1, size2)
 dd = subprocess.call(dd_command, shell=True)
 if dd < 0:
     print >>sys.stderr, "Error!", -dd
-    exit(code=1)
+    failed()
 
 print "-> Making new filesystem on %s - %s..." % (name, fs)
 
@@ -108,18 +119,16 @@ if os.path.exists(mkfs_path):
     mkfs = subprocess.call(mkfs_command, shell=True)
     if mkfs < 0:
         print >>sys.stderr, "--> Filesystem creation failed!", -mkfs
-        exit(code=1)
+        failed()
     else:
         print "--> fs created"
 else:
     print >>sys.stderr, "--> can't locate /sbin/mkfs.%s! you have to install package that contains tools for filesystem that you've chosen" % fs
-    exit(code=1)
+    failed()
 
 if os.path.exists('/usr/bin/sudo'):
     print "-> found sudo in /usr/bin/sudo, using it to mount"
-    mntname = "%s-mnt" % name
-    home = os.getenv('PWD')
-    to_mount = "%s/%s" % (home, mntname)
+
     if os.path.exists(to_mount):
         print "Directory %s exists: OK" % to_mount
     else:
@@ -129,27 +138,34 @@ if os.path.exists('/usr/bin/sudo'):
     mnt_stdout = mnt.communicate()[0]
     if mnt_stdout:
         print >>sys.stderr, "--> Mounting failed!", -mnt_stdout 
-        exit(code=1)
+        failed()
     print "-> CHOWNing"
     user = os.geteuid()
     gid = os.getgid()
     os.chown(mntname, user, gid)
     print "-> Making new wine environment on %s... The winecfg window will appear, please configure all." % name
-    home = os.getenv('PWD')
-    wprefix = "%s/%s/wine-env" % (home, mntname)
+    currentdir = os.getenv('PWD')
+    wprefix = "%s/%s/wine-env" % (currentdir, mntname)
     os.putenv('WINEPREFIX', wprefix)
     subprocess.Popen('winecfg', shell=True).communicate()[0]
     print "-> Installing game in image..."
-    subprocess.Popen(['wine', installer], shell=True).communicate()[0]
-    cp_cmd = "cp %s/gime-basic-env/__run__.sh %s/%s" % (home, home, mntname)
+    wcmd = "wine %s" % installer
+    subprocess.Popen(wcmd, shell=True).communicate()[0]
+    cp_cmd = "cp %s/gime-basic-env/__run__.sh %s/%s" % (currentdir, currentdir, mntname)
     subprocess.Popen(cp_cmd, shell=True).communicate()[0]
 
-    print """Now change the initial __run__.sh script to run your game. You have time 
-to configure your game and apply patches. After that unmount this dir.
-The mounted image directory is imagename-mnt. To unmount type sudo unmount imagename-mnt,
-if you want to prepare the  image for distribution or just make it smaller, 
-type: ./gime-lzma imagename.  Mounting again is simple. Type ./gimemount imagename 
-- if you used gime-lzma tool before, or you downloaded image from internet it will
+    print """--------------------------------------
+Now change initial __run__.sh script to run  game. It's time 
+to configure Your game and apply patches. After that Youve to unmount this dir, 
+mounted image directory is imagename-mnt. To unmount type sudo unmount imagename-mnt.
+If you want to make this image portable or just make it smaller, type: 
+./gime-lzma imagename.  
+
+Mounting again is simple, type 
+./gime-mount imagename 
+
+If you used gime-lzma tool before, or you downloaded image from internet it will
 be decompressed first. This can take an long time, but is 2x faster than 
-compression ( ./gime-lzma )."""
+compression ( ./gime-lzma ).
+--------------------------------------"""
 
