@@ -17,11 +17,9 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import sys
 import os
 import subprocess 
-
 
 if len(sys.argv) > 1:
     name = sys.argv[1]
@@ -141,11 +139,11 @@ if os.path.exists('/usr/bin/sudo'):
         failed()
     print "-> CHOWNing"
     user = os.getenv('LOGNAME')
-    chmod_cmd = "sudo chown -R %s %s" % (user, to_mount)
-    chmod = subprocess.Popen(chmod_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    chmod_stdout = chmod.communicate()[0]
-    if chmod_stdout:
-        print >>sys.stderr, "--> CHMODing failed!", -chmod_stdout 
+    chown_cmd = "sudo chown -R %s %s" % (user, to_mount)
+    chown = subprocess.Popen(chown_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    chown_stdout = chown.communicate()[0]
+    if chown_stdout:
+        print >>sys.stderr, "--> CHONing failed!", -chown_stdout 
         failed()
     print "-> Making new wine environment on %s... The winecfg window will appear, please configure all." % name
     currentdir = os.getenv('PWD')

@@ -17,7 +17,6 @@
 #
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import sys
 import os
 import subprocess 
@@ -31,6 +30,7 @@ if len(name) >= 1:
     current_dir = os.getenv('PWD')
     mntname = "%s-mnt" % name 
     mnt_dir = "%s/%s" % (current_dir, mntname)
+    gime_path = "%s/%s.gime" % (current_dir, name)
     if len(sys.argv) >= 3:
         fs = sys.argv[2]
     else:
@@ -44,7 +44,7 @@ def helpmsg():
 
 def mounter():
     mnt_cmd = "sudo mount -o loop -t %s %s %s" % (fs, name, mntname)
-    mount = subprocess.Popen(mnt_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    mnt = subprocess.Popen(mnt_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     mnt_stdout = mnt.communicate()[0]
     if mnt_stdout:
         print >>sys.stderr, "--> Mounting failed!", -mnt_stdout 
@@ -52,9 +52,9 @@ def mounter():
     else: 
         print "Image mounted..."
     user = os.getenv('LOGNAME')
-    chown_cmd = "sudo chown -R %s %s" % (user, to_mount)
-    chown = subprocess.Popen(chmod_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    chown_stdout = chmod.communicate()[0]
+    chown_cmd = "sudo chown -R %s %s" % (user, mnt_dir)
+    chown = subprocess.Popen(chown_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    chown_stdout = chown.communicate()[0]
     if chown_stdout:
         print >>sys.stderr, "--> CHMODing failed!", -chown_stdout
         sys.exit(1)
@@ -62,21 +62,19 @@ def mounter():
         print "And CHOWNed."
     print "Done!" 
 
-
-if len(name) == 0 or name.find('--help'):
+if len(name) == 0 or name == "--help":
     helpmsg()
     sys.exit(0)
-
-if name.endswith('.gime') and os.path.exists(mnt_dir):
+elif len(name) and os.path.exists(gime_path) and os.path.exists(mnt_dir):
     print "-> Found compressed image."
     print "Decompressing %s ..." % name
-    uncmd = "%s -d %s" % (command, s)
+    uncmd = "lzma -S .gime -d %s" % name
     uncompress = subprocess.Popen(uncmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True).communicate()[0]
     print "Done"
     name.rstrip('.gime')
     print "Image nad directory: Found", name
     mounter()
-elif name and os.path.exists(mnt_dir):
+elif len(name) and os.path.exists(mnt_dir):
     print "Image nad directory: Found"
     mounter()
 else:
