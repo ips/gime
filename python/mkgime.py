@@ -25,7 +25,6 @@ if len(sys.argv) > 1:
     name = sys.argv[1]
 else:
     name = ''
-
 if len(sys.argv) >= 5:
     installer = sys.argv[4]
     size1 = sys.argv[2]
@@ -34,7 +33,6 @@ if len(sys.argv) >= 5:
         fs = sys.argv[5]
     else:
         fs = "ext4"
-
 if len(name) > 0 and len(sys.argv) >= 5:
     mntname = "%s-mnt" % name
     currentdir = os.getenv('PWD')
@@ -90,30 +88,32 @@ if len(name) == 0 or name == "--help":
 elif os.path.exists(name):
     print >>sys.stderr, "File exists!"
     sys.exit(1)
-
 version_check()
-
 summary(name, installer, size1, size2, fs)
-
 print "-> Creating %s with size %sx%s" % (name, size1, size2)
 dd_command = "dd if=/dev/zero of=%s bs=%s count=%s" % (name, size1, size2)
 dd = subprocess.call(dd_command, shell=True)
 if dd < 0:
     print >>sys.stderr, "Error!", -dd
     failed()
-
 print "-> Making new filesystem on %s - %s..." % (name, fs)
-
 mkfs_path = "/sbin/mkfs.%s" % fs
 if os.path.exists(mkfs_path):
     print "--> /sbin/mkfs.%s exists, using it..." % fs
     if fs.find('ext') > 0:
-        ext = '-F '
-    else:
-        ext = ''
-    mkfs_command = "%s %s%s" % (mkfs_path, ext, name)
-    print mkfs_command
+        fs_mod = '-F '
+    elif fs == "xfs":
+        xfs_check = subprocess.Popen("mkfs.xfs -V", stdout=subprocess.PIPE, shell=True).communicate()[0]
+        if xfs_check.find('3.0'):
+            fs_info = os.stat(imgpath).st_size
+            print fs_info
 
+            fs_mod = "-d size=%s " % fs_info
+        else:
+            fs_mod = ''
+    else:
+        fs_mod = ''
+    mkfs_command = "%s %s%s" % (mkfs_path, fs_mod, imgpath)
     mkfs = subprocess.call(mkfs_command, shell=True)
     if mkfs < 0:
         print >>sys.stderr, "--> Filesystem creation failed!", -mkfs
@@ -123,10 +123,8 @@ if os.path.exists(mkfs_path):
 else:
     print >>sys.stderr, "--> can't locate /sbin/mkfs.%s! you have to install package that contains tools for filesystem that you've chosen" % fs
     failed()
-
 if os.path.exists('/usr/bin/sudo'):
     print "-> found sudo in /usr/bin/sudo, using it to mount"
-
     if os.path.exists(to_mount):
         print "Directory %s exists: OK" % to_mount
     else:
@@ -155,7 +153,6 @@ if os.path.exists('/usr/bin/sudo'):
     subprocess.Popen(wcmd, shell=True).communicate()[0]
     cp_cmd = "cp %s/gime-basic-env/__run__.sh %s/%s" % (currentdir, currentdir, mntname)
     subprocess.Popen(cp_cmd, shell=True).communicate()[0]
-
     print """--------------------------------------
 Now change initial __run__.sh script to run  game. It's time 
 to configure Your game and apply patches. After that Youve to unmount this dir, 
