@@ -1,4 +1,5 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # This program is free software. You can redistribute it under terms of GNU General Public License 3.
 # This is a GIME API, do not run it.
 import os
