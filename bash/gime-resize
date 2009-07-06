@@ -29,15 +29,45 @@ if [ "$1" = "" ]; then
 	exit 0
 fi
 
-#TODO: All
+#TODO <- watch for it!
 
 echo "WARNING: This is just STUB!"
 
 
 if [ -e "$1" ]; then
 	echo "-> $1 found"
-	if [ "$4" = "" ]; then
+	if [ "$3" = "" ]; then
 		echo "-> Mounting $1 as ext4"
-		if [ -x "$1-mnt" ]; then
-			rm -rf $1-mnt; mkdir $1-mnt
-			sudo mount $1 -t ext4 -o loop $1 $1-mnt 
+		if [ -d "$1-mnt" ]; then
+			sudo umount $1
+			rm -rf $1-mnt
+		fi
+
+		if [ -x "./gime-mount.py" ]; then
+			./gime-mount.py $1
+		elif [ -x "/usr/bin/gime-mount" ]; then
+			/usr/bin/gime-mount $1
+		elif [ -x "../python/gime-mount.py" ]; then
+			../python/gime-mount.py $1
+		else
+			echo "-> Couldn't find gime-mount!"; exit gime-mount_missing
+		fi
+	else
+		echo "-> Mounting $1 as $3"
+		if [ -x "./gime-mount.py" ]; then 
+			./gime-mount.py $1 $3
+		elif [ -x "/usr/bin/gime-mount" ]; then
+			/usr/bin/gime-mount $1 $3
+		elif [ -x "../python/gime-mount.py" ]; then
+			../python/gime-mount.py $1 $3
+		else
+			echo "-> Couldn't find gime-mount!"; exit gime-mount_missing
+		fi
+	fi
+	if [ "$2" = "" ]; then
+		echo "-> You must specify new size (ex. 1 GB)"
+	else
+		dd if=/dev/zero of=$1-new bs=$2 count=1 #TODO must fix later, now it's using alot RAM, but works ;)
+	fi
+#TODO Rest of this :P
+fi
