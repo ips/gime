@@ -1,3 +1,4 @@
+#!/bin/sh
 echo "GIME Diagnostics script v1.0"
 echo "(c) 2009 by ExeGames.PL & Serenity.org.pl"
 
