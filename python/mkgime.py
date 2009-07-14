@@ -141,7 +141,7 @@ if os.path.exists('/usr/bin/sudo'):
     chown = subprocess.Popen(chown_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     chown_stdout = chown.communicate()[0]
     if chown_stdout:
-        print >>sys.stderr, "--> CHONing failed!", -chown_stdout 
+        print >>sys.stderr, "--> CHOWNing failed!", -chown_stdout 
         failed()
     print "-> Making new wine environment on %s... The winecfg window will appear, please configure all." % name
     currentdir = os.getenv('PWD')

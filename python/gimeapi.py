@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 # This program is free software. You can redistribute it under terms of GNU General Public License 3.
 # This is a GIME API, do not run it.
+import sys
 import os
+import subprocess
 import shutil
 import logging
 import logging.handlers
@@ -28,3 +30,23 @@ class GIMEAPI:
 		"""Creates an GIME Image.
 		   @returns: True if successful, error code for HandleError if fails."""
 		
+
+	def CheckVersion():
+		if os.path.exists('/usr/bin/wine'):
+        		command = "wine --version"
+    		else:
+        		return 101
+        	
+		opt = subprocess.Popen(command, shell=True, stderr=None, stdout=subprocess.PIPE)
+		opt_stdout = opt.communicate()[0]
+
+		if opt_stdout.find('1.0.1') > 0:
+			if os.path.exists('/usr/bin/aptitude'):
+				return 102
+        		else:
+				return 103
+		else:
+			return 200
+			version_ok = True
+			
+	
